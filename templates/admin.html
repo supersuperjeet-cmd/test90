@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeet - Admin Dashboard 🔐</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .admin-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .admin-header h1 { font-size: 32px; margin-bottom: 10px; }
+        .admin-header p { font-size: 14px; opacity: 0.8; }
+
+        .main-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            height: 85vh;
+        }
+
+        .sidebar-tabs {
+            width: 200px;
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .tab-btn {
+            padding: 15px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .tab-btn:hover { background: #e9ecef; }
+        .tab-btn.active {
+            background: #e9ecef;
+            border-left-color: #667eea;
+            color: #667eea;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .submission-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .submission-type {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .submission-content {
+            color: #555;
+            word-break: break-word;
+        }
+        
+        .submission-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .section-title { color: #667eea; font-size: 22px; margin-bottom: 25px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="password"], textarea, input[type="file"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-danger { background: #ff4d4d; }
+        .btn-success { background: #4caf50; }
+        .btn-block { width: 100%; display: block; }
+
+        /* Users Section */
+        .users-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .user-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .user-id { font-weight: bold; color: #333; }
+        .user-mood { color: #667eea; font-size: 12px; margin: 5px 0; }
+        .user-memory { color: #666; font-size: 13px; max-height: 60px; overflow: hidden; }
+
+        /* Music Grid */
+        .music-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .music-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        .music-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .music-icon { font-size: 30px; margin-bottom: 10px; }
+        .music-name {
+            color: #333;
+            font-size: 12px;
+            word-break: break-word;
+            margin-bottom: 10px;
+            max-height: 40px;
+            overflow: hidden;
+        }
+
+        /* Diary items */
+        .diary-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+        }
+        .diary-date {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .diary-text {
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        /* Chat history */
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .chat-message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left: 4px solid #667eea;
+        }
+        .chat-message.bot {
+            background: #f0f0f0;
+            border-left: 4px solid #999;
+        }
+        .msg-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .chat-message.user .msg-label { color: #fff; }
+
+        /* Inline forms */
+        .inline-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .inline-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        /* Alert messages */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .exit-btn {
+            background: #ff85a2;
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .exit-btn:hover { 
+            transform: scale(1.1) rotate(-2deg); 
+            background: #ff6b8e;
+            box-shadow: 0 6px 20px rgba(255, 133, 162, 0.5);
+        }
+        .exit-btn:active { transform: scale(0.95); }
+
+        /* AI Chat display */
+        .ai-messages {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            min-height: 200px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .modal-header h2 {
+            color: #667eea;
+            margin: 0;
+            font-size: 24px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .modal-buttons .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .main-panel { flex-direction: column; height: auto; min-height: 80vh; }
+            .sidebar-tabs { width: 100%; flex-direction: row; padding: 10px; border-right: none; border-bottom: 2px solid #e0e0e0; }
+            .tab-btn { padding: 10px; font-size: 12px; border-left: none; border-bottom: 3px solid transparent; text-align: center; flex: 1; }
+            .tab-btn.active { border-bottom-color: #667eea; }
+            .content-area { padding: 15px; }
+            .form-row { grid-template-columns: 1fr; }
+            .admin-header h1 { font-size: 24px; }
+            .modal-content { padding: 20px; width: 95%; }
+        }
+
+</head>
+<body>
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 12px;">
+        <button class="exit-btn" onclick="exitAdmin()">🌸 Exit Admin</button>
+        <button class="exit-btn" style="background: white; color: #ff85a2; border: 2px solid #ff85a2;" onclick="goBack()">🏠 Home</button>
+    </div>
+
+    <div id="adminLoginPage" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 50px rgba(0,0,0,0.2); width: 90%; max-width: 400px;">
+            <h2 style="color: #667eea; margin-bottom: 30px;">🔐 Admin Access</h2>
+            <div class="form-group">
+                <label style="display: block; color: #555; margin-bottom: 10px; font-weight: bold;">Enter Admin Password</label>
+                <input type="password" id="adminPassword" placeholder="Admin password..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px;">
+            </div>
+            <button class="btn btn-success" onclick="loginAdmin()" style="width: 100%; padding: 12px;">Unlock Admin Panel 🔓</button>
+            <p style="color: #999; margin-top: 20px; font-size: 13px;">Password is: <strong>admin</strong></p>
+        </div>
+    </div>
+
+    <div id="adminDashboard" style="display: none;">
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>Jeet Control Panel 🔐</h1>
+            <p>Admin Dashboard - Complete Control</p>
+        </div>
+
+        <div class="main-panel">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchTab('password')">🔐 Password</button>
+                <button class="tab-btn" onclick="switchTab('ai-chat')">💬 AI Chat</button>
+                <button class="tab-btn" onclick="switchTab('music')">🎵 Music</button>
+                <button class="tab-btn" onclick="switchTab('games')">🎮 Game Submissions</button>
+                <button class="tab-btn" onclick="switchTab('chat')">📜 Jeet Repair Center</button>
+                <button class="tab-btn" onclick="switchTab('diary')">📔 Diary</button>
+                <button class="tab-btn" onclick="exitAdmin()" style="color: #ff4d4d; margin-top: auto; font-weight: bold;">🚪 Exit Admin</button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+
+                <!-- Password Tab -->
+                <div id="password-tab" class="tab-content active">
+                    <h2 class="section-title">🔐 Change Web Password</h2>
+                    <div class="alert" id="password-alert"></div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPass" placeholder="Enter new password...">
+                    </div>
+                    <button class="btn btn-success" onclick="updatePassword()">Update Password ✅</button>
+                </div>
+
+                <!-- AI Chat Tab -->
+                <div id="ai-chat-tab" class="tab-content">
+                    <h2 class="section-title">💬 Chat with AI (Admin Panel)</h2>
+                    <div class="alert" id="ai-alert"></div>
+                    <p style="color: #666; margin-bottom: 20px;">💡 Chat with the AI directly from admin panel. This is just for testing/control.</p>
+                    
+                    <div class="ai-messages" id="aiMessages">
+                        <p style="color: #999; text-align: center;">Chat will appear here...</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="aiInput" placeholder="Say something to Jeet..."></textarea>
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="sendAIMessage()">Send Message 💬</button>
+                </div>
+
+                <!-- Music Tab -->
+                <div id="music-tab" class="tab-content">
+                    <h2 class="section-title">🎵 Music Library</h2>
+                    <div class="alert" id="music-alert"></div>
+
+                    <!-- Upload Section -->
+                    <div class="inline-section">
+                        <h3>📤 Upload Music</h3>
+                        <div class="form-group">
+                            <label>Select Music File (.mp3, .wav, .m4a, .ogg)</label>
+                            <input type="file" id="musicFile" accept=".mp3,.wav,.m4a,.ogg">
+                        </div>
+                        <button class="btn btn-success btn-block" onclick="uploadMusic()">Upload Music 🎶</button>
+                    </div>
+
+                    <!-- Music List -->
+                    <div class="inline-section">
+                        <h3>🎵 Available Songs:</h3>
+                        <div class="music-grid" id="musicList">
+                            <p style="color: #999;">Loading music...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Tab (Hidden from Sidebar but accessible) -->
+                <div id="users-tab" class="tab-content">
+                    <h2 class="section-title">👥 Jeet Data Manager</h2>
+                    <div class="alert" id="user-alert"></div>
+                    
+                    <div class="inline-section">
+                        <h3>🛠️ User Management Tools</h3>
+                        <p style="color: #666; margin-bottom: 15px;">Rename, merge, or delete user data directly from this center.</p>
+                    </div>
+
+                    <!-- Merge Section -->
+                    <div class="inline-section">
+                        <h3>🔗 Merge User Data</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Source User ID (Delete this one)</label>
+                                <input type="text" id="mergeSource" placeholder="Source ID">
+                            </div>
+                            <div class="form-group">
+                                <label>Target User ID (Keep this one)</label>
+                                <input type="text" id="mergeTarget" placeholder="Target ID">
+                            </div>
+                        </div>
+                        <button class="btn btn-block" onclick="mergeUsers()">Merge & Delete Source 🔗</button>
+                    </div>
+
+                    <div class="users-grid" id="usersContainer">
+                        <p style="color: #999;">Loading users...</p>
+                    </div>
+                </div>
+
+                <!-- Games Tab -->
+                <div id="games-tab" class="tab-content">
+                    <h2 class="section-title">🎮 Game Submissions</h2>
+                    <button class="btn btn-success" onclick="loadGameSubmissions()">Load Submissions</button>
+                    <div id="gameSubmissionsContainer" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Chat History Tab -->
+                <div id="chat-tab" class="tab-content">
+                    <h2 class="section-title">📜 Jeet Repair Center</h2>
+
+                    <!-- Manager Option -->
+                    <div class="inline-section">
+                        <h3>🛠️ Manager</h3>
+                        <p style="color: #666; margin-bottom: 15px;">Click below to manage user data, rename users, and merge accounts.</p>
+                        <button class="btn btn-block" onclick="switchTab('users')">Open User Manager 👥</button>
+                    </div>
+
+                    <!-- Clear All Data -->
+                    <div class="inline-section">
+                        <h3>🗑️ Clear All Data</h3>
+                        <p style="color: #666; margin-bottom: 15px;">This will clear all memories, chat history, and diary notes for the personal account.</p>
+                        <button class="btn btn-danger btn-block" onclick="submitClearUser()">Clear All Personal Data 🗑️</button>
+                    </div>
+
+                    <!-- Delete Old Messages -->
+                    <div class="inline-section">
+                        <h3>🧹 Delete Old Messages</h3>
+                        <p style="color: #666; margin-bottom: 15px;">Select a time range to delete messages</p>
+                        <button class="btn btn-danger" onclick="openDeleteModal()">Delete Old Messages 🗑️</button>
+                    </div>
+
+                    <!-- History of Games -->
+                    <div class="inline-section">
+                        <h3>🎮 Games History</h3>
+                        <p style="color: #666; margin-bottom: 15px;">View all recent game submissions and results.</p>
+                        <button class="btn btn-block" onclick="switchTab('games')">View Games History 🎮</button>
+                    </div>
+
+                    <!-- History Display -->
+                    <div class="inline-section">
+                        <h3>📜 Recent Chats:</h3>
+                        <div id="chatHistoryContainer" style="max-height: 400px; overflow-y: auto;">
+                            <p style="color: #999;">Loading chat history...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diary Tab -->
+                <div id="diary-tab" class="tab-content">
+                    <h2 class="section-title">📔 Diary Notes</h2>
+                    <div id="diaryContainer">
+                        <p style="color: #999;">Loading diary...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Delete Messages Modal -->
+        <div id="deleteModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🗑️ Delete Messages</h2>
+                    <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+                </div>
+                
+                <p style="color: #666; margin-bottom: 20px;">Select a time range. Memory.json is safe 💙</p>
+                
+                <div class="form-group">
+                    <label>Select Time Range to Delete</label>
+                    <select id="deleteRangeSelect" onchange="updateDeleteOptions(this.value)">
+                        <option value="">-- Select a Range --</option>
+                        <option value="session">💬 This Session Only</option>
+                        <option value="1day">📆 Last 24 Hours</option>
+                        <option value="7days">📅 Last 7 Days</option>
+                        <option value="30days">📋 Last 30 Days</option>
+                        <option value="all">🗑️ All Messages</option>
+                    </select>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button class="btn" style="background: #ccc; color: #333;" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="submitDeleteMessages()">Delete 🗑️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let aiChatHistory = [];
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            if(tabName === 'users') loadUsers();
+            if(tabName === 'chat') loadChatHistory();
+            if(tabName === 'diary') loadDiary();
+            if(tabName === 'music') loadMusicList();
+        }
+
+        function showAlert(id, message, type) {
+            const alert = document.getElementById(id);
+            alert.textContent = message;
+            alert.className = 'alert ' + type;
+            setTimeout(() => alert.classList.remove(type), 5000);
+        }
+
+        // Password Update
+        async function updatePassword() {
+            const pw = document.getElementById('newPass').value.trim();
+            if(!pw) { alert('Please enter a password'); return; }
+            const resp = await fetch('/admin/update_password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pw})
+            });
+            const d = await resp.json();
+            if(d.success) {
+                document.getElementById('newPass').value = '';
+                showAlert('password-alert', '✅ Password updated successfully!', 'success');
+            }
+        }
+
+        // AI Chat
+        async function sendAIMessage() {
+            const msg = document.getElementById('aiInput').value.trim();
+            if(!msg) return;
+            
+            // Add user message to display
+            let html = document.getElementById('aiMessages').innerHTML;
+            if(html.includes('Chat will appear here')) html = '';
+            html += `<div class="chat-message user"><div class="msg-label">You:</div><div>${msg}</div></div>`;
+            document.getElementById('aiMessages').innerHTML = html;
+            document.getElementById('aiInput').value = '';
+
+            // Send to AI
+            const resp = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: msg})
+            });
+            const d = await resp.json();
+            
+            // Add bot response
+            html = document.getElementById('aiMessages').innerHTML;
+            html += `<div class="chat-message bot"><div class="msg-label">Jeet:</div><div>${d.reply || 'No response'}</div></div>`;
+            document.getElementById('aiMessages').innerHTML = html;
+            document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
+        }
+
+        // Users
+        async function loadUsers() {
+            const resp = await fetch('/admin/users');
+            const users = await resp.json();
+            const container = document.getElementById('usersContainer');
+            const select = document.getElementById('clearUserSelect');
+            
+            if(!users || users.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No users yet</p>';
+                return;
+            }
+
+            // Update clear user dropdown
+            select.innerHTML = '<option value="">-- Select User --</option>';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `ID: ${u.id} (${u.mood || 'loving'})`;
+                select.appendChild(opt);
+            });
+
+            container.innerHTML = '';
+            users.forEach(u => {
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <div class="user-id">ID: ${u.id} <span style="color: #666; font-size: 12px; font-weight: normal;">(${u.name || 'No Name'})</span></div>
+                            <div class="user-mood">Mood: ${u.mood || 'loving'}</div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn" style="padding: 5px 10px; font-size: 10px;" onclick="editUser('${u.id}', '${u.name || ''}', '${u.mood}', \`${(u.memory || '').replace(/`/g, '\\`')}\`)">Manage ⚙️</button>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 10px;" onclick="deleteUser('${u.id}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="user-memory">Memory: ${(u.memory || '').substring(0, 100)}...</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function deleteUser(id) {
+            if(!confirm(`Delete user ${id} and ALL their data? This cannot be undone.`)) return;
+            const resp = await fetch('/admin/user/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: id})
+            });
+            const d = await resp.json();
+            if(d.success) loadUsers();
+        }
+
+        async function editUser(id, name, mood, memory) {
+            const newName = prompt('User Name:', name);
+            if(newName === null) return;
+            const newMood = prompt('Update Mood:', mood);
+            if(newMood === null) return;
+            const newMem = prompt('Update Memory:', memory);
+            if(newMem === null) return;
+            
+            const resp = await fetch('/admin/user/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: id, name: newName, mood: newMood, memory: newMem})
+            });
+            const d = await resp.json();
+            if(d.success) loadUsers();
+        }
+
+        // Chat History
+        async function loadChatHistory() {
+            await loadUsers(); // Refresh dropdown
+            const resp = await fetch('/repair/history');
+            const messages = await resp.json();
+            const container = document.getElementById('chatHistoryContainer');
+            if(!messages || messages.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No chat history</p>';
+                return;
+            }
+            container.innerHTML = '';
+            messages.slice(-50).reverse().forEach(m => {
+                const userMsg = document.createElement('div');
+                userMsg.className = 'chat-message user';
+                userMsg.innerHTML = `<div class="msg-label">User:</div><div>${m.message}</div>`;
+                
+                const botMsg = document.createElement('div');
+                botMsg.className = 'chat-message bot';
+                botMsg.innerHTML = `<div class="msg-label">Jeet:</div><div>${m.response}</div>`;
+                
+                container.appendChild(userMsg);
+                container.appendChild(botMsg);
+            });
+        }
+
+        // Diary
+        async function loadDiary() {
+            const resp = await fetch('/admin/diary');
+            const data = await resp.json();
+            const container = document.getElementById('diaryContainer');
+            const notes = data.notes || [];
+            if(notes.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No diary notes</p>';
+                return;
+            }
+            container.innerHTML = '';
+            notes.forEach((n, idx) => {
+                const item = document.createElement('div');
+                item.className = 'diary-item';
+                item.innerHTML = `
+                    <div class="diary-date">${n.date || 'No date'}</div>
+                    <div class="diary-text">${n.text}</div>
+                    <button class="btn btn-danger" onclick="deleteDiaryNote(${idx})" style="font-size: 12px; padding: 8px 12px;">Delete</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function deleteDiaryNote(idx) {
+            if(!confirm('Delete this note?')) return;
+            const resp = await fetch('/admin/diary/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({index: idx})
+            });
+            const d = await resp.json();
+            if(d.success) {
+                loadDiary();
+                showAlert('diary-alert', '✅ Note deleted', 'success');
+            }
+        }
+
+        // Music
+        async function loadMusicList() {
+            const resp = await fetch('/admin/music/list');
+            const files = await resp.json();
+            const container = document.getElementById('musicList');
+            if(!files || files.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No music files. Upload some! 🎶</p>';
+                return;
+            }
+            container.innerHTML = '';
+            files.forEach(file => {
+                const card = document.createElement('div');
+                card.className = 'music-card';
+                card.innerHTML = `
+                    <div class="music-icon">🎵</div>
+                    <div class="music-name">${file}</div>
+                    <button class="btn btn-danger" onclick="deleteMusic('${file}')" style="width: 100%; font-size: 12px; padding: 8px;">Delete</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function uploadMusic() {
+            const file = document.getElementById('musicFile').files[0];
+            if(!file) { alert('Select a file'); return; }
+            const formData = new FormData();
+            formData.append('file', file);
+            const resp = await fetch('/admin/music/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const d = await resp.json();
+            if(d.success) {
+                document.getElementById('musicFile').value = '';
+                loadMusicList();
+                showAlert('music-alert', '✅ Music uploaded!', 'success');
+            } else {
+                showAlert('music-alert', '❌ Upload failed: ' + (d.error || 'Unknown error'), 'error');
+            }
+        }
+
+        async function deleteMusic(filename) {
+            if(!confirm(`Delete "${filename}"?`)) return;
+            const resp = await fetch('/admin/music/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({filename: filename})
+            });
+            const d = await resp.json();
+            if(d.success) {
+                loadMusicList();
+                showAlert('music-alert', '✅ Music deleted!', 'success');
+            }
+        }
+
+        // Clear/Delete actions
+        async function submitClearUser() {
+            const userId = document.getElementById('clearUserSelect').value;
+            if(!userId) { alert('Please select a user'); return; }
+            if(!confirm('Are you SURE you want to clear ALL data for this user? This cannot be undone.')) return;
+            
+            const resp = await fetch('/repair/clear_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: userId})
+            });
+            const d = await resp.json();
+            alert(d.message);
+            loadUsers();
+            loadChatHistory();
+        }
+
+        let selectedDeleteRange = 'session';
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.add('active');
+            document.getElementById('deleteRangeSelect').value = 'session';
+            selectedDeleteRange = 'session';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            document.getElementById('deleteRangeSelect').value = '';
+        }
+
+        function updateDeleteOptions(range) {
+            if(range) {
+                selectedDeleteRange = range;
+            }
+        }
+
+        async function submitDeleteMessages() {
+            if(!selectedDeleteRange || selectedDeleteRange === '') {
+                alert('Please select a time range first');
+                return;
+            }
+            if(!confirm(`Delete messages from "${selectedDeleteRange}" range? Messages will be permanently deleted! (memory.json is safe 💙)`)) return;
+            
+            const resp = await fetch('/repair/delete_old', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({range: selectedDeleteRange})
+            });
+            const d = await resp.json();
+            
+            closeDeleteModal();
+            if(d.success) {
+                showAlert('user-alert', '✅ ' + d.message, 'success');
+                loadChatHistory();
+            } else {
+                showAlert('user-alert', '❌ ' + (d.error || 'Failed to delete'), 'error');
+            }
+        }
+
+        async function loadGameSubmissions() {
+            const resp = await fetch('/admin/games/submissions');
+            const submissions = await resp.json();
+            const container = document.getElementById('gameSubmissionsContainer');
+            if(!submissions || submissions.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No game submissions yet!</p>';
+                return;
+            }
+            container.innerHTML = '';
+            submissions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'submission-item';
+                const timestamp = new Date(s.timestamp).toLocaleString();
+                const content = s.content || `File: ${s.file_path}`;
+                item.innerHTML = `<div class="submission-type">${s.game_type.toUpperCase()}</div><div class="submission-content">${content}</div><div class="submission-time">${timestamp}</div>`;
+                container.appendChild(item);
+            });
+        }
+
+        function goBack() { window.location.href = '/'; }
+
+        function loginAdmin() {
+            const pwd = document.getElementById('adminPassword').value;
+            if(pwd === 'admin') {
+                document.getElementById('adminLoginPage').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadUsers();
+            } else {
+                alert('❌ Wrong password! Try again.');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') loginAdmin();
+        });
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('adminPassword').focus();
+        });
+    </script>
+</body>
+</html>

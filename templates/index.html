@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeet - Your AI Boyfriend 💙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Quicksand', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app-container {
+            display: flex;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1000px;
+            height: 90vh;
+            overflow: hidden;
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            .app-container {
+                height: 100dvh;
+                border-radius: 0;
+                flex-direction: column;
+            }
+        }
+        .sidebar {
+            width: 250px;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transition: left 0.3s ease;
+        }
+        .sidebar-header h2 { color: #667eea; text-align: center; margin-bottom: 30px; font-size: 20px; }
+        .menu-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #555;
+            font-weight: 500;
+        }
+        .menu-item:hover { background: #e9ecef; }
+        .menu-item.active { background: #667eea; color: white; }
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: #fff; }
+        .view { display: none; height: 100%; flex-direction: column; }
+        .view.active { display: flex; }
+        
+        /* Chat View */
+        .chat-header { padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h1 { font-size: 20px; color: #333; }
+        .messages-container { flex: 1; overflow-y: auto; padding: 20px; background: #f5f5f5; display: flex; flex-direction: column; }
+        .message { 
+            margin-bottom: 15px; 
+            max-width: 80%; 
+            padding: 14px 20px; 
+            border-radius: 22px; 
+            font-size: 15.5px; 
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.user { 
+            align-self: flex-end; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
+            color: #444; 
+            border-bottom-right-radius: 4px; 
+            font-weight: 500;
+        }
+        .message.bot { 
+            align-self: flex-start; 
+            background: white; 
+            color: #444; 
+            border-bottom-left-radius: 4px; 
+            border: 1px solid #f0f0f0;
+        }
+        .input-area { padding: 20px; border-top: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 10px; }
+        input[type="text"], textarea { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 15px; transition: border-color 0.3s; background: #f8f9fa; }
+        input[type="text"]:focus, textarea:focus { border-color: #667eea; background: white; }
+        .send-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 25px; border-radius: 25px; color: white; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        .send-btn:hover { transform: scale(1.05); }
+
+        /* Diary View */
+        .diary-container { padding: 30px; overflow-y: auto; flex: 1; }
+        .diary-paper { background: #fff; border: 1px solid #e0e0e0; border-radius: 15px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .ai-note { font-style: italic; color: #667eea; font-size: 18px; margin-bottom: 30px; text-align: center; }
+        .notes-list { margin-top: 20px; }
+        .note-item { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed #eee; position: relative; }
+        .note-date { font-size: 12px; color: #999; margin-bottom: 5px; }
+        .note-text { color: #555; line-height: 1.5; }
+        .add-note-box { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
+        textarea { height: 80px; resize: none; border-radius: 15px; padding: 15px; }
+
+        /* Games View */
+        .games-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 15px; 
+            padding: 20px; 
+            overflow-y: auto;
+            flex: 1;
+        }
+        .game-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2); border-color: #667eea; }
+        .game-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+        .game-name { font-weight: bold; color: #333; font-size: 16px; }
+        .random-game-btn { grid-column: 1 / -1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 18px; text-align: center; cursor: pointer; margin-bottom: 10px; }
+
+        @media (max-width: 768px) {
+            .app-container { height: 100dvh; border-radius: 0; flex-direction: column; }
+            .main-content { overflow: hidden; }
+            .sidebar { 
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 1000;
+                background: white;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+            }
+            .sidebar.active { left: 0; }
+            .mobile-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-bottom: none;
+                height: 60px;
+                flex-shrink: 0;
+            }
+            .three-dots { font-size: 24px; cursor: pointer; color: white; font-weight: bold; }
+            .mobile-music-btn { font-size: 20px; cursor: pointer; color: white; }
+            .chat-header .logout-btn, .chat-header #music-player-ui { display: none !important; }
+            .chat-header { justify-content: center; padding: 10px; }
+            .chat-header h1 { font-size: 16px; }
+            .messages-container { padding: 12px; overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; }
+            .message { max-width: 85%; padding: 10px 14px; font-size: 14px; border-radius: 18px; }
+            .input-area { padding: 12px; gap: 8px; }
+            .diary-container { padding: 12px; overflow-y: auto; }
+            .diary-paper { padding: 15px; min-height: auto; }
+            .ai-note { font-size: 15px; }
+            .games-grid { padding: 12px; gap: 10px; }
+            .game-card { padding: 12px; }
+            .game-icon { font-size: 32px; }
+            .game-name { font-size: 14px; }
+            .random-game-btn { font-size: 16px; padding: 12px; }
+            .repair-options { grid-template-columns: 1fr; }
+            .repair-card { min-height: 90px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-container { height: 100dvh; border-radius: 0; flex-direction: column; }
+            .main-content { overflow: hidden; }
+            .sidebar { 
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 1000;
+                background: white;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+            }
+            .sidebar.active { left: 0; }
+            .mobile-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-bottom: none;
+                height: 60px;
+                flex-shrink: 0;
+            }
+            .three-dots { font-size: 24px; cursor: pointer; color: white; font-weight: bold; }
+            .mobile-music-btn { font-size: 20px; cursor: pointer; color: white; }
+            .chat-header .logout-btn, .chat-header #music-player-ui { display: none !important; }
+            .chat-header { justify-content: center; padding: 10px; }
+            .chat-header h1 { font-size: 16px; }
+            .messages-container { padding: 12px; overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; }
+            .message { max-width: 85%; padding: 10px 14px; font-size: 14px; border-radius: 18px; }
+            .input-area { padding: 12px; gap: 8px; }
+            .diary-container { padding: 12px; overflow-y: auto; }
+            .diary-paper { padding: 15px; min-height: auto; }
+            .ai-note { font-size: 15px; }
+            .games-grid { padding: 12px; gap: 10px; }
+            .game-card { padding: 12px; }
+            .game-icon { font-size: 32px; }
+            .game-name { font-size: 14px; }
+            .random-game-btn { font-size: 16px; padding: 12px; }
+            .repair-options { grid-template-columns: 1fr; }
+            .repair-card { min-height: 90px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-container { height: 100dvh; border-radius: 0; flex-direction: column; }
+            .main-content { overflow: hidden; }
+            .sidebar { 
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 1000;
+                background: white;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+            }
+            .sidebar.active { left: 0; }
+            .mobile-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-bottom: none;
+                height: 60px;
+                flex-shrink: 0;
+            }
+            .three-dots { font-size: 24px; cursor: pointer; color: white; font-weight: bold; }
+            .mobile-music-btn { font-size: 20px; cursor: pointer; color: white; }
+            .chat-header { display: none !important; }
+            .messages-container { padding: 12px; overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; }
+            .message { max-width: 85%; padding: 10px 14px; font-size: 14px; border-radius: 18px; }
+            .input-area { padding: 10px; gap: 8px; background: white; }
+            .input-area input { padding: 10px 15px; font-size: 14px; }
+            .send-btn { padding: 10px 15px; font-size: 14px; }
+            .diary-container { padding: 12px; overflow-y: auto; }
+            .diary-paper { padding: 15px; min-height: auto; }
+            .ai-note { font-size: 15px; }
+            .games-grid { padding: 12px; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+            .game-card { padding: 12px; }
+            .game-icon { font-size: 32px; }
+            .game-name { font-size: 14px; }
+            .random-game-btn { font-size: 16px; padding: 12px; }
+            .repair-options { grid-template-columns: 1fr; }
+            .repair-card { min-height: 90px; }
+        }
+
+        .mobile-header {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .app-container { height: 100dvh; border-radius: 0; flex-direction: column; }
+            .main-content { overflow: hidden; }
+            .sidebar { 
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                z-index: 1000;
+                background: white;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+                transition: left 0.3s ease;
+            }
+            .sidebar.active { left: 0; }
+            .mobile-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-bottom: none;
+                height: 60px;
+                flex-shrink: 0;
+            }
+            .three-dots { font-size: 24px; cursor: pointer; color: white; font-weight: bold; }
+            .mobile-music-btn { font-size: 20px; cursor: pointer; color: white; }
+            .chat-header { display: none !important; }
+            .messages-container { padding: 12px; overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; }
+            .message { max-width: 85%; padding: 10px 14px; font-size: 14px; border-radius: 18px; }
+            .input-area { padding: 10px; gap: 8px; background: white; }
+            .input-area input { padding: 10px 15px; font-size: 14px; }
+            .send-btn { padding: 10px 15px; font-size: 14px; }
+            .diary-container { padding: 12px; overflow-y: auto; }
+            .diary-paper { padding: 15px; min-height: auto; }
+            .ai-note { font-size: 15px; }
+            .games-grid { padding: 12px; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+            .game-card { padding: 12px; }
+            .game-icon { font-size: 32px; }
+            .game-name { font-size: 14px; }
+            .random-game-btn { font-size: 16px; padding: 12px; }
+            .repair-options { grid-template-columns: 1fr; }
+            .repair-card { min-height: 90px; }
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .typing-indicator { font-size: 12px; color: #667eea; margin-bottom: 10px; display: none; }
+        .typing-indicator.active { display: block; }
+        .watermark { position: fixed; bottom: 10px; right: 20px; font-size: 11px; color: #fff; opacity: 0.6; pointer-events: none; }
+
+        /* Beautiful Cute Popup */
+        .cute-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(102, 126, 234, 0.1);
+            backdrop-filter: blur(3px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: popupFadeIn 0.3s ease;
+        }
+        .cute-popup-overlay.active {
+            display: flex;
+        }
+        @keyframes popupFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .cute-popup {
+            background: white;
+            border-radius: 25px;
+            padding: 35px 30px;
+            max-width: 380px;
+            width: 85%;
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+            text-align: center;
+            animation: popupSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid rgba(255, 154, 158, 0.2);
+        }
+        @keyframes popupSlideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .cute-popup-emoji {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .cute-popup-title {
+            color: #667eea;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .cute-popup-message {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        .cute-popup-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .cute-popup-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        .cute-popup-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Repair Modal */
+        .repair-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .repair-modal.active { display: flex; }
+        .repair-dialog { background: white; border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .repair-dialog h2 { color: #667eea; margin-bottom: 20px; }
+        .repair-dialog input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; }
+        .repair-dialog button { background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .repair-dialog button:hover { background: #5a67d8; }
+
+        /* Repair View */
+        .repair-container { padding: 20px; overflow-y: auto; flex: 1; }
+        .repair-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .repair-card { background: white; border: 1px solid #e0e0e0; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .repair-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2); border-color: #667eea; }
+        .repair-icon { font-size: 32px; margin-bottom: 8px; }
+        .repair-name { font-weight: bold; color: #333; font-size: 14px; }
+
+        .game-overlay { 
+            display: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: #fff; 
+            z-index: 100; 
+            flex-direction: column; 
+            padding: 20px; 
+            overflow-y: auto;
+        }
+        .game-overlay.active { display: flex; }
+        .game-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .back-to-games { position: absolute; top: 20px; left: 20px; background: #f8f9fa; padding: 8px 15px; border-radius: 10px; cursor: pointer; color: #667eea; font-weight: bold; border: 1px solid #ddd; }
+        .logout-btn { padding: 8px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 13px; }
+
+        /* Cute Game Input Styles */
+        .game-input-box {
+            width: 100%;
+            max-width: 280px;
+            padding: 16px 20px;
+            border: 3px solid transparent;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(135deg, #fff 0%, #f8f5ff 100%);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+            color: #667eea;
+        }
+        .game-input-box::placeholder {
+            color: #c8b8e4;
+            font-weight: 400;
+        }
+        .game-input-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #fff 0%, #faf8ff 100%);
+        }
+
+        .game-input-box::-webkit-outer-spin-button,
+        .game-input-box::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .game-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .game-question {
+            font-size: 22px;
+            color: #555;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0 30px;
+            max-width: 90%;
+            line-height: 1.5;
+        }
+
+        .game-status {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .game-result {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+            text-align: center;
+            animation: slideInResult 0.4s ease;
+        }
+
+        @keyframes slideInResult {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-title {
+            font-size: 28px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* TTT */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 20px auto; }
+        .ttt-cell { width: 80px; height: 80px; background: #f8f9fa; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; cursor: pointer; color: #667eea; }
+        .ttt-cell.taken { cursor: default; }
+        
+        /* Mobile Game Fixes */
+        @media (max-width: 768px) {
+            .ttt-grid { grid-template-columns: repeat(3, 60px); gap: 5px; }
+            .ttt-cell { width: 60px; height: 60px; font-size: 30px; }
+            .game-stage { padding: 15px; }
+            .game-stage input { width: 100% !important; max-width: 100% !important; padding: 12px !important; font-size: 16px; box-sizing: border-box; }
+            .game-stage button { width: 100% !important; margin: 10px 0 !important; }
+            .game-stage p { font-size: 14px; word-wrap: break-word; }
+            .game-stage h2 { font-size: 20px; margin: 15px 0; }
+            .send-btn { width: 100%; margin-top: 10px; padding: 12px; }
+            .mobile-header { display: flex !important; }
+            .chat-header { padding: 10px 15px; }
+            .chat-header h1 { font-size: 16px; }
+            .sidebar { width: 200px; }
+        }
+
+        /* Music Player Styles */
+        .music-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 16px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .music-player:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        .music-icon {
+            font-size: 18px;
+            animation: musicBounce 0.6s ease-in-out infinite;
+        }
+        .music-icon.playing {
+            animation: musicBounce 0.4s ease-in-out infinite;
+        }
+        @keyframes musicBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .music-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .music-status {
+            font-size: 11px;
+            font-weight: bold;
+            opacity: 0.9;
+        }
+        .music-song-name {
+            font-size: 11px;
+            opacity: 0.85;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .music-next-btn {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: none;
+        }
+        .music-next-btn:hover {
+            background: rgba(255,255,255,0.5);
+            transform: scale(1.1);
+        }
+        .music-player.playing .music-next-btn {
+            display: block;
+        }
+
+        /* Mobile Music Player Enhancement */
+        @media (max-width: 768px) {
+            .mobile-music-btn {
+                display: none !important;
+            }
+            .mobile-music-player {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                padding: 6px 12px;
+                border-radius: 20px;
+                cursor: pointer;
+                color: white;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                flex: 1;
+                max-width: 180px;
+                justify-content: center;
+            }
+            .mobile-music-player:active {
+                background: rgba(255, 255, 255, 0.3);
+                transform: scale(0.95);
+            }
+            .mobile-music-icon {
+                font-size: 16px;
+                animation: musicBounce 0.6s ease-in-out infinite;
+            }
+            .mobile-music-icon.playing {
+                animation: musicBounce 0.4s ease-in-out infinite;
+            }
+            .mobile-music-info {
+                display: flex;
+                flex-direction: column;
+                gap: 1px;
+                min-width: 0;
+            }
+            .mobile-music-status {
+                font-size: 9px;
+                font-weight: bold;
+                opacity: 0.95;
+            }
+            .mobile-music-name {
+                font-size: 8px;
+                opacity: 0.8;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 100px;
+            }
+            .mobile-music-next {
+                background: rgba(255, 255, 255, 0.3);
+                border: none;
+                color: white;
+                padding: 3px 6px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 10px;
+                display: none;
+                transition: all 0.2s;
+            }
+            .mobile-music-next:active {
+                background: rgba(255, 255, 255, 0.5);
+                transform: scale(0.9);
+            }
+            .mobile-music-player.playing .mobile-music-next {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cute-popup-overlay" id="cutePopup">
+        <div class="cute-popup">
+            <span class="cute-popup-emoji" id="popupEmoji">💫</span>
+            <div class="cute-popup-title" id="popupTitle">Message</div>
+            <div class="cute-popup-message" id="popupMessage">Something happened!</div>
+            <button class="cute-popup-btn" onclick="closePopup()">OK 💙</button>
+        </div>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-container">
+        <div class="mobile-header">
+            <div class="three-dots" onclick="toggleSidebar()">☰</div>
+            <button id="mobile-music-player" class="mobile-music-player" onclick="toggleMusic()">
+                <span id="mobile-music-icon" class="mobile-music-icon">🎵</span>
+                <div class="mobile-music-info">
+                    <span class="mobile-music-status" id="mobile-music-status">Play</span>
+                    <span class="mobile-music-name" id="mobile-music-name">-</span>
+                </div>
+                <span class="mobile-music-next" onclick="skipToNextMusic(event)">⏭️</span>
+            </button>
+            <div style="color: white; font-weight: bold; font-size: 14px; min-width: 50px; text-align: center;">Jeet 💙</div>
+        </div>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>Jeet 💙</h2></div>
+            <div class="menu-item active" onclick="showView('chat', this)"><span>💬</span> Chat</div>
+            <div class="menu-item" onclick="showView('diary', this)"><span>✨</span> Personal Memories</div>
+            <div class="menu-item" onclick="showView('games', this)"><span>🎮</span> Games</div>
+            <div class="menu-item" onclick="openRepair()"><span>🛠️</span> Repair</div>
+            <div class="menu-item" onclick="logout()" style="margin-top: auto; color: #e74c3c;"><span>🚪</span> Logout</div>
+        </div>
+
+        <div class="main-content">
+            <div id="chat-view" class="view active">
+                <div class="chat-header">
+                    <h1>Chat with Jeet 💙</h1>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button id="music-player-ui" class="music-player" onclick="toggleMusic()">
+                            <span id="music-icon" class="music-icon">🎵</span>
+                            <div class="music-info">
+                                <span class="music-status" id="music-status">Play Music</span>
+                                <span class="music-song-name" id="music-song-name">-</span>
+                            </div>
+                            <span class="music-next-btn" onclick="skipToNextMusic(event)">⏭️</span>
+                        </button>
+                        <button class="logout-btn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+                <audio id="bg-music" loop></audio>
+                <div class="messages-container" id="chatMessages">
+                    {% if session.get('needs_setup') %}
+                    <div class="message bot" style="background: #fff3cd; border: 1px solid #ffeeba; color: #856404; text-align: center; max-width: 100%; align-self: center;">
+                        ⚠️ <b>Setup Required:</b> Please go to <b>Repair → Manager</b> and enter your OpenAI API Key to start chatting! 💙
+                    </div>
+                    {% endif %}
+                    <div class="message bot" style="font-style: italic; opacity: 0.7;">Loading our memories together... 💫</div>
+                </div>
+                <div class="input-area">
+                    <div class="typing-indicator" id="typing">Jeet is typing sweet things... ✍️</div>
+                    <input type="text" id="chatInput" placeholder="Tell me everything baby..." onkeypress="if(event.key==='Enter') sendChat()">
+                    <button class="send-btn" onclick="sendChat()">Send</button>
+                </div>
+            </div>
+
+            <div id="diary-view" class="view">
+                <div class="diary-container">
+                    <div class="diary-paper">
+                        <div class="ai-note" id="aiDiaryLine">Thinking of you bubu... ✨</div>
+                        <div class="notes-list" id="notesList"></div>
+                        <div class="add-note-box">
+                            <textarea id="noteInput" placeholder="Add a note to our diary, baby... 💕"></textarea>
+                            <button class="send-btn" onclick="addNote()">Save Memory</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="games-view" class="view">
+                <div class="games-grid">
+                    <div class="random-game-btn" onclick="playRandomGame()">✨ Play Random Game ✨</div>
+                    <div class="game-card" onclick="startGame('Tic Tac Toe')"><span class="game-icon">❌</span><div class="game-name">Tic Tac Toe</div></div>
+                    <div class="game-card" onclick="startGame('Love Quiz')"><span class="game-icon">💌</span><div class="game-name">Love Quiz</div></div>
+                    <div class="game-card" onclick="startGame('Kiss or Slap')"><span class="game-icon">💋</span><div class="game-name">Kiss/Slap</div></div>
+                    <div class="game-card" onclick="startGame('Guess Number')"><span class="game-icon">🔢</span><div class="game-name">Guess Number</div></div>
+                    <div class="game-card" onclick="startGame('Word Scramble')"><span class="game-icon">🔤</span><div class="game-name">Scramble</div></div>
+                    <div class="game-card" onclick="startGame('Rock Paper Scissors')"><span class="game-icon">✊</span><div class="game-name">RPS</div></div>
+                    <div class="game-card" onclick="startGame('Love Match')"><span class="game-icon">❤️</span><div class="game-name">Love Match</div></div>
+                    <div class="game-card" onclick="startGame('Truth or Dare')"><span class="game-icon">🔥</span><div class="game-name">Truth/Dare</div></div>
+                    <div class="game-card" onclick="startGame('Riddle Me')"><span class="game-icon">🧩</span><div class="game-name">Riddles</div></div>
+                    <div class="game-card" onclick="startGame('Emoji Guess')"><span class="game-icon">🤔</span><div class="game-name">Emoji Guess</div></div>
+                    <div class="game-card" onclick="startGame('Toss Coin')"><span class="game-icon">🪙</span><div class="game-name">Toss Coin</div></div>
+                    <div class="game-card" onclick="startGame('Dice Roll')"><span class="game-icon">🎲</span><div class="game-name">Dice Roll</div></div>
+                    <div class="game-card" onclick="startGame('Memory Match')"><span class="game-icon">🎴</span><div class="game-name">Memory</div></div>
+                    <div class="game-card" onclick="startGame('Higher Lower')"><span class="game-icon">⬆️⬇️</span><div class="game-name">Higher/Lower</div></div>
+                    <div class="game-card" onclick="startGame('Would You Rather')"><span class="game-icon">🤔</span><div class="game-name">Rather</div></div>
+                    <div class="game-card" onclick="startGame('Love Letter')"><span class="game-icon">💌</span><div class="game-name">Love Letter</div></div>
+                    <div class="game-card" onclick="startGame('Never Have I Ever')"><span class="game-icon">🚫</span><div class="game-name">Never Have I</div></div>
+                    <div class="game-card" onclick="startGame('Compliment Challenge')"><span class="game-icon">😍</span><div class="game-name">Compliment</div></div>
+                    <div class="game-card" onclick="startGame('Speed Dating')"><span class="game-icon">⚡</span><div class="game-name">Speed Date</div></div>
+                </div>
+            </div>
+
+            <div id="repair-view" class="view">
+                <div class="repair-container">
+                    <h1 style="text-align: center; color: #667eea; margin-bottom: 30px;">🛠️ Jeet Repair Center</h1>
+                    <div class="repair-options">
+                        <div class="repair-card" onclick="openRepairModal('chat')">
+                            <div class="repair-icon">💬</div>
+                            <div class="repair-name">Chat with AI</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('music')">
+                            <div class="repair-icon">🎵</div>
+                            <div class="repair-name">Music Manager</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('history')">
+                            <div class="repair-icon">📜</div>
+                            <div class="repair-name">Chat History</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('clear')">
+                            <div class="repair-icon">🗑️</div>
+                            <div class="repair-name">Clear Data</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('password')">
+                            <div class="repair-icon">🔑</div>
+                            <div class="repair-name">Change Password</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('userManager')">
+                            <div class="repair-icon">👥</div>
+                            <div class="repair-name">User Manager</div>
+                        </div>
+                        <div class="repair-card" onclick="openRepairModal('apiManager')">
+                            <div class="repair-icon">⚙️</div>
+                            <div class="repair-name">Manager</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-overlay" class="game-overlay">
+                <div class="back-to-games" onclick="closeGame()">← Back</div>
+                <div class="game-stage" id="gameStage"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">Made with ❤️ by Jeet</div>
+
+    <div id="repairModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; text-align:center; width:90%; max-width:400px;">
+            <h3 style="color:#667eea; margin-bottom:15px;">Repair Key 🔑</h3>
+            <input type="password" id="repairKey" placeholder="Secret key..." style="width:100%; padding:12px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px; text-align:center;" onkeydown="if(event.key==='Enter') submitRepair()">
+            <button class="send-btn" style="width:100%;" onclick="submitRepair()">Unlock</button>
+            <button onclick="document.getElementById('repairModal').style.display='none'" style="margin-top:10px; background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Repair Modals -->
+    <!-- Chat Modal -->
+    <div id="repairChatModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+        <div style="background:white; padding:30px; border-radius:25px; width:95%; max-width:650px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 1px solid #fecfef; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#ff9a9e; margin: 0; font-size: 24px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 28px;">💬</span> Chat with AI
+                </h3>
+                <button onclick="closeRepairModal('chat')" style="background:#f8f9fa; border:none; font-size:20px; cursor:pointer; color:#999; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='#ffeff2'; this.style.color='#ff9a9e'" onmouseout="this.style.background='#f8f9fa'; this.style.color='#999'">✕</button>
+            </div>
+            
+            <div id="repairChatBox" style="background:#fffafa; border-radius:20px; padding:20px; flex: 1; overflow-y:auto; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; border:2px solid #fff0f3; box-shadow: inset 0 2px 10px rgba(255,154,158,0.05);">
+                <div style="color:#ff9a9e; text-align:center; margin: auto; font-style: italic; opacity: 0.8;">
+                    Start a cute conversation with Jeet... 💙
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px; background: #f8f9fa; padding: 10px; border-radius: 20px; border: 1px solid #eee;">
+                <textarea id="repairChatInput" placeholder="Say something sweet..." style="flex:1; padding:15px; border:none; background:transparent; font-size:15px; height:60px; resize:none; outline:none; font-family: inherit; color: #444;" onfocus="this.placeholder=''" onblur="this.placeholder='Say something sweet...'"></textarea>
+                <button class="send-btn" onclick="sendRepairChat()" style="width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center; padding:0; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(255,154,158,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <span style="font-size: 24px;">🚀</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Modal -->
+    <div id="repairMusicModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:600px; max-height:80vh; overflow-y:auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">🎵 Music Manager</h3>
+                <button onclick="closeRepairModal('music')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <label style="display:block; color:#555; margin-bottom:10px; font-weight:bold;">Upload Music</label>
+                <input type="file" id="repairMusicFile" accept=".mp3,.wav,.m4a,.ogg" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px;">
+                <button class="send-btn" onclick="uploadRepairMusic()" style="width:100%;">Upload 🎶</button>
+            </div>
+            <h4 style="color:#667eea; margin-bottom:15px;">Available Songs:</h4>
+            <div id="repairMusicList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px;">
+                <p style="color:#999;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="repairHistoryModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:600px; max-height:80vh; overflow-y:auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">📜 Chat History</h3>
+                <button onclick="closeRepairModal('history')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <button class="send-btn" onclick="loadRepairHistory()" style="margin-bottom:15px; width:100%;">Reload History</button>
+            <div id="repairHistoryContainer" style="background:#f8f9fa; border-radius:10px; padding:15px; max-height:400px; overflow-y:auto;">
+                <p style="color:#999;">Click Reload...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Data Modal -->
+    <div id="repairClearModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">🗑️ Clear Data</h3>
+                <button onclick="closeRepairModal('clear')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <label style="display:block; color:#555; margin-bottom:10px; font-weight:bold;">Select User to Clear</label>
+                <select id="repairClearUserSelect" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px;">
+                    <option value="">Loading users...</option>
+                </select>
+                <button class="send-btn" style="background:#ff4d4d; width:100%;" onclick="submitRepairClearUser()">Clear Selected User Data 🗑️</button>
+            </div>
+            <h4 style="color:#667eea; margin-bottom:15px;">Delete Old Messages</h4>
+            <p style="color:#666; margin-bottom:15px; font-size:14px;">Delete all messages older than 30 days</p>
+            <button class="send-btn" style="background:#ff4d4d; width:100%;" onclick="submitRepairDeleteOld()">Delete Old Messages 🧹</button>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div id="repairPasswordModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">🔑 Change Web Password</h3>
+                <button onclick="closeRepairModal('password')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <label style="display:block; color:#555; margin-bottom:10px; font-weight:bold;">New Password</label>
+                <input type="text" id="newWebPassword" placeholder="Enter new password..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin-bottom:15px;">
+                <button class="send-btn" style="width:100%;" onclick="submitChangePassword()">Update Password 🔒</button>
+            </div>
+            <p style="color:#666; font-size:12px; text-align:center;">This will change the main login password for the site.</p>
+        </div>
+    </div>
+
+    <!-- User Manager Modal -->
+    <div id="repairUserManagerModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:95%; max-width:800px; max-height:85vh; overflow-y:auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">👥 User Manager</h3>
+                <button onclick="closeRepairModal('userManager')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <div id="userManagerContent" style="background:#f8f9fa; border-radius:10px; padding:15px; overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; min-width:600px;">
+                    <thead>
+                        <tr style="text-align:left; border-bottom:2px solid #ddd;">
+                            <th style="padding:10px;">ID</th>
+                            <th style="padding:10px;">Name</th>
+                            <th style="padding:10px;">Mood</th>
+                            <th style="padding:10px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:20px; padding:15px; background:#eef2ff; border-radius:10px;">
+                <h4 style="color:#667eea; margin-bottom:10px;">Merge Users</h4>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="mergeSourceId" placeholder="Source ID" style="flex:1; padding:10px; border-radius:5px; border:1px solid #ddd;">
+                    <input type="text" id="mergeTargetId" placeholder="Target ID" style="flex:1; padding:10px; border-radius:5px; border:1px solid #ddd;">
+                    <button class="send-btn" onclick="submitMergeUsers()">Merge Now 🔗</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Manager Modal -->
+    <div id="repairApiManagerModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color:#667eea; margin: 0;">⚙️ Manager</h3>
+                <button onclick="closeRepairModal('apiManager')" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999;">✕</button>
+            </div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <label style="display:block; color:#555; margin-bottom:8px; font-weight:bold; font-size: 14px;">OpenAI API Key</label>
+                <input type="text" id="newApiKey" placeholder="sk-..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+                
+                <label style="display:block; color:#555; margin-bottom:8px; font-weight:bold; font-size: 14px;">Database Connection (URL)</label>
+                <textarea id="newDbUrl" placeholder="postgresql://user:pass@host:port/db" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; height:80px; font-size: 12px; margin-bottom:15px;"></textarea>
+                
+                <button class="send-btn" onclick="submitRepairApi()" style="width:100%;">Update Settings 💾</button>
+            </div>
+            <p style="font-size: 11px; color: #888; text-align: center;">Note: Database changes might require a server restart to apply fully.</p>
+        </div>
+    </div>
+
+    <script>
+        const ALL_GAMES = ['Tic Tac Toe', 'Guess Number'];
+        let tttBoard = ['', '', '', '', '', '', '', '', ''];
+        let guessTarget = 0;
+        let isMusicPlaying = false;
+        let musicPlaylist = [];
+        let currentMusicIndex = 0;
+
+        async function loadChatHistory() {
+            try {
+                const resp = await fetch('/chat/history');
+                const messages = await resp.json();
+                if(messages && messages.length > 0) {
+                    document.getElementById('chatMessages').innerHTML = '';
+                    messages.forEach(m => {
+                        appendMsg(m.message, true);
+                        appendMsg(m.response, false);
+                    });
+                }
+            } catch(e) { console.log('History load optional'); }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        
+        // Load chat history on page load
+        document.addEventListener('DOMContentLoaded', loadChatHistory);
+
+        function showView(viewId, el) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId + '-view').classList.add('active');
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            if(el) el.classList.add('active');
+            if(viewId === 'diary') loadDiary();
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            }
+        }
+
+        function openRepair() {
+            document.getElementById('repairModal').style.display = 'flex';
+            document.getElementById('repairKey').focus();
+        }
+
+        async function submitRepair() {
+            const key = document.getElementById('repairKey').value;
+            if(key === 'admin') {
+                document.getElementById('repairModal').style.display = 'none';
+                showView('repair');
+            } else {
+                alert('Wrong key! ❌');
+            }
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if(!msg) return;
+            appendMsg(msg, true);
+            input.value = '';
+            document.getElementById('typing').classList.add('active');
+            const resp = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: msg})
+            });
+            const data = await resp.json();
+            document.getElementById('typing').classList.remove('active');
+            appendMsg(data.reply, false);
+        }
+
+        function appendMsg(text, isUser) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'bot'}`;
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function loadDiary() {
+            try {
+                const resp = await fetch('/diary/get');
+                const data = await resp.json();
+                document.getElementById('aiDiaryLine').textContent = data.last_ai_line || "Thinking of you bubu... ✨";
+                const list = document.getElementById('notesList');
+                list.innerHTML = '';
+                (data.notes || []).slice().reverse().forEach((n, i) => {
+                    const originalIdx = (data.notes.length - 1) - i;
+                    const item = document.createElement('div');
+                    item.className = 'note-item';
+                    item.innerHTML = `
+                        <div class="note-date">${n.date}</div>
+                        <div class="note-text">${n.text}</div>
+                        <button onclick="deleteNote(${originalIdx})" style="position:absolute; top:0; right:0; background:none; border:none; color:#ff4d4d; cursor:pointer; font-size:12px;">Delete</button>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function addNote() {
+            const input = document.getElementById('noteInput');
+            const note = input.value.trim();
+            if(!note) return;
+            const resp = await fetch('/diary/add_note', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({note: note})
+            });
+            const d = await resp.json();
+            if(d.success) { input.value = ''; loadDiary(); }
+        }
+
+        async function deleteNote(idx) {
+            if(!confirm("Delete memory?")) return;
+            const resp = await fetch('/diary/delete_note', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({index: idx})
+            });
+            const d = await resp.json();
+            if(d.success) loadDiary();
+        }
+
+        function playClickSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+
+        function showPopup(title, message, emoji = '💫') {
+            document.getElementById('popupTitle').textContent = title;
+            document.getElementById('popupMessage').textContent = message;
+            document.getElementById('popupEmoji').textContent = emoji;
+            document.getElementById('cutePopup').classList.add('active');
+        }
+
+        function closePopup() {
+            document.getElementById('cutePopup').classList.remove('active');
+        }
+        
+        async function initMusicPlayer() {
+            try {
+                const resp = await fetch('/music/list');
+                musicPlaylist = await resp.json();
+                if(musicPlaylist.length > 0) {
+                    currentMusicIndex = 0;
+                }
+            } catch(e) { console.log('Music list error'); }
+        }
+
+        function playMusic(index) {
+            if(musicPlaylist.length === 0) return;
+            const audio = document.getElementById('bg-music');
+            currentMusicIndex = index % musicPlaylist.length;
+            const filename = musicPlaylist[currentMusicIndex];
+            audio.src = '/static/music/' + filename;
+            
+            // Update UI - Desktop
+            const songName = filename.replace(/\.[^/.]+$/, "");
+            document.getElementById('music-song-name').textContent = songName;
+            document.getElementById('music-status').textContent = "🎶 Playing...";
+            document.getElementById('music-icon').classList.add('playing');
+            document.getElementById('music-player-ui').classList.add('playing');
+            
+            // Update UI - Mobile
+            const mobilePlayer = document.getElementById('mobile-music-player');
+            if(mobilePlayer) {
+                document.getElementById('mobile-music-name').textContent = songName;
+                document.getElementById('mobile-music-status').textContent = "🎶";
+                document.getElementById('mobile-music-icon').classList.add('playing');
+                mobilePlayer.classList.add('playing');
+            }
+            
+            audio.play();
+            isMusicPlaying = true;
+        }
+
+        function toggleMusic() {
+            playClickSound();
+            const audio = document.getElementById('bg-music');
+            if (isMusicPlaying) {
+                audio.pause();
+                document.getElementById('music-status').textContent = "▶️ Paused";
+                document.getElementById('music-icon').classList.remove('playing');
+                document.getElementById('music-player-ui').classList.remove('playing');
+                
+                // Mobile update
+                const mobilePlayer = document.getElementById('mobile-music-player');
+                if(mobilePlayer) {
+                    document.getElementById('mobile-music-status').textContent = "▶️";
+                    document.getElementById('mobile-music-icon').classList.remove('playing');
+                    mobilePlayer.classList.remove('playing');
+                }
+                
+                isMusicPlaying = false;
+            } else {
+                if(musicPlaylist.length === 0) {
+                    fetch('/music/list').then(r => r.json()).then(files => {
+                        musicPlaylist = files;
+                        if(files.length > 0) {
+                            playMusic(Math.floor(Math.random() * files.length));
+                        } else showPopup('No Music 🎵', 'Add some in admin section 🥺', '🎵');
+                    });
+                } else {
+                    playMusic(currentMusicIndex);
+                }
+            }
+        }
+
+        function skipToNextMusic(e) {
+            e.stopPropagation();
+            if(musicPlaylist.length === 0) return;
+            playMusic(currentMusicIndex + 1);
+        }
+
+        // Auto-play next music when current ends
+        document.addEventListener('DOMContentLoaded', () => {
+            initMusicPlayer();
+            const audio = document.getElementById('bg-music');
+            audio.addEventListener('ended', () => {
+                if(isMusicPlaying && musicPlaylist.length > 0) {
+                    playMusic(currentMusicIndex + 1);
+                }
+            });
+        });
+
+        let gameState = {};
+        
+        function checkWinner(board) {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for(let w of wins) if(board[w[0]] && board[w[0]] === board[w[1]] && board[w[1]] === board[w[2]]) return board[w[0]];
+            return null;
+        }
+        
+        function getBestMove(board) {
+            const empty = board.map((v,i) => v === '' ? i : null).filter(v => v !== null);
+            for(let i of empty) {
+                const test = [...board]; test[i] = 'O';
+                if(checkWinner(test) === 'O') return i;
+            }
+            for(let i of empty) {
+                const test = [...board]; test[i] = 'X';
+                if(checkWinner(test) === 'X') return i;
+            }
+            return empty[Math.floor(Math.random() * empty.length)];
+        }
+
+        function startGame(name) {
+            const stage = document.getElementById('gameStage');
+            document.getElementById('game-overlay').classList.add('active');
+            stage.innerHTML = `<h2>${name} 💕</h2>`;
+            gameState = {game: name, score: 0};
+            
+            if(name === 'Tic Tac Toe') {
+                tttBoard = ['', '', '', '', '', '', '', '', ''];
+                stage.innerHTML += `<div class="ttt-grid" id="tttGrid"></div><p id="tttStatus">Your turn (X)!</p>`;
+                renderTTT();
+            } else if(name === 'Guess Number') {
+                gameState.secret = Math.floor(Math.random() * 100) + 1;
+                gameState.attempts = 0;
+                stage.innerHTML += `<p class="game-question">🤔 I'm thinking of a number 1-100... Can you guess it?</p><div class="game-input-wrapper"><input type="number" id="guessInput" class="game-input-box" placeholder="Your guess..." min="1" max="100"><button onclick="submitGuess()" class="send-btn">Guess! 💭</button></div><p id="guessResult" class="game-result"></p>`;
+                document.getElementById('guessInput').focus();
+            } else if(name === 'Love Quiz') {
+                stage.innerHTML += `<p id="quizQ" style="font-size: 18px; margin: 20px 0;"></p><div id="quizOptions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;"></div>`;
+                playQuiz();
+            } else if(name === 'Rock Paper Scissors') {
+                stage.innerHTML += `<p>Choose your move!</p><div style="display: flex; gap: 10px; justify-content: center;"><button onclick="playRPS('Rock')" class="send-btn">✊ Rock</button><button onclick="playRPS('Paper')" class="send-btn">📄 Paper</button><button onclick="playRPS('Scissors')" class="send-btn">✌️ Scissors</button></div><p id="rpsResult" style="margin-top: 20px; font-size: 18px;"></p>`;
+            } else if(name === 'Kiss or Slap') {
+                const result = Math.random() > 0.5 ? '💋 KISS! You got a kiss bubu!' : '😂 SLAP! Oops, better luck next time!';
+                stage.innerHTML += `<p style="font-size: 24px; margin: 40px 0;">${result}</p><button onclick="startGame('Kiss or Slap')" class="send-btn">Play Again</button>`;
+            } else if(name === 'Word Scramble') {
+                const words = ['JEET', 'LOVE', 'HEART', 'SMILE', 'SWEET', 'CUTE', 'KISS', 'HUG'];
+                gameState.word = words[Math.floor(Math.random() * words.length)];
+                gameState.scrambled = gameState.word.split('').sort(() => Math.random() - 0.5).join('');
+                stage.innerHTML += `<p class="game-question">🔤 Unscramble this word:</p><p style="font-size: 36px; color: #667eea; font-weight: bold; letter-spacing: 4px; margin: 15px 0;">${gameState.scrambled}</p><div class="game-input-wrapper"><input type="text" id="wordInput" class="game-input-box" placeholder="Your answer..."><button onclick="checkWord()" class="send-btn">Submit! ✨</button></div><p id="wordResult" class="game-result"></p>`;
+                document.getElementById('wordInput').focus();
+            } else if(name === 'Riddle Me') {
+                const riddles = [{q: "What gets wet while drying?", a: "towel"}, {q: "I am not alive but I grow, I don't have lungs but I need air, I don't have a mouth but water kills me. What am I?", a: "fire"}, {q: "The more you take, the more you leave behind. What am I?", a: "footsteps"}];
+                gameState.riddle = riddles[Math.floor(Math.random() * riddles.length)];
+                stage.innerHTML += `<p class="game-question">🧩 ${gameState.riddle.q}</p><div class="game-input-wrapper"><input type="text" id="riddleInput" class="game-input-box" placeholder="Your answer..."><button onclick="checkRiddle()" class="send-btn">Answer! 🧠</button></div><p id="riddleResult" class="game-result"></p>`;
+                document.getElementById('riddleInput').focus();
+            } else if(name === 'Love Match') {
+                const matches = ['💕 Perfect Match!', '❤️ You two vibe!', '💗 So much love!', '💞 Soulmates!', '💖 Pure magic!'];
+                const match = Math.floor(Math.random() * 100) + 1;
+                const result = matches[Math.floor(match / 20)];
+                stage.innerHTML += `<p style="font-size: 48px; margin: 30px 0;">${match}%</p><p style="font-size: 20px; margin: 20px 0;">${result}</p><button onclick="startGame('Love Match')" class="send-btn">Try Again</button>`;
+            } else if(name === 'Truth or Dare') {
+                const truths = ['What\'s your biggest dream?', 'When was the last time you cried?', 'What do you love about me?', 'Your biggest fear?', 'What makes you feel loved?'];
+                const dares = ['Hug your phone!', 'Smile for 30 seconds!', 'Dance to a song!', 'Send me a sweet text!', 'Take a silly selfie!'];
+                const choice = Math.random() > 0.5;
+                const content = choice ? truths[Math.floor(Math.random() * truths.length)] : dares[Math.floor(Math.random() * dares.length)];
+                stage.innerHTML += `<p style="font-size: 20px; margin: 30px 0;">${choice ? '🤔 TRUTH' : '🔥 DARE'}</p><p style="font-size: 18px; margin: 20px 0;">${content}</p><button onclick="startGame('Truth or Dare')" class="send-btn">Next</button>`;
+            } else if(name === 'Emoji Guess') {
+                const emojis = [{e: '❤️', a: 'heart'}, {e: '🎉', a: 'party'}, {e: '🌙', a: 'moon'}, {e: '⭐', a: 'star'}, {e: '🍀', a: 'clover'}];
+                gameState.emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                stage.innerHTML += `<p style="font-size: 80px; margin: 20px 0; animation: bounce 0.6s infinite;">${gameState.emoji.e}</p><p class="game-question">What emoji am I?</p><div class="game-input-wrapper"><input type="text" id="emojiInput" class="game-input-box" placeholder="Your guess..."><button onclick="checkEmoji()" class="send-btn">Guess! 🤔</button></div><p id="emojiResult" class="game-result"></p>`;
+                document.getElementById('emojiInput').focus();
+            } else if(name === 'Toss Coin') {
+                const result = Math.random() > 0.5 ? '🪙 HEADS!' : '🪙 TAILS!';
+                stage.innerHTML += `<p style="font-size: 40px; margin: 40px 0;">${result}</p><button onclick="startGame('Toss Coin')" class="send-btn">Toss Again</button>`;
+            } else if(name === 'Dice Roll') {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                stage.innerHTML += `<p style="font-size: 60px; margin: 40px 0;">🎲 ${roll}</p><button onclick="startGame('Dice Roll')" class="send-btn">Roll Again</button>`;
+            } else if(name === 'Memory Match') {
+                gameState.cards = ['💕', '💕', '💖', '💖', '💗', '💗', '❤️', '❤️'];
+                gameState.cards = gameState.cards.sort(() => Math.random() - 0.5);
+                gameState.flipped = new Array(8).fill(false);
+                gameState.matched = new Array(8).fill(false);
+                gameState.first = null;
+                stage.innerHTML += `<div style="display: grid; grid-template-columns: repeat(4, 60px); gap: 8px; margin: 20px auto;"><div id="memoryGrid"></div></div><p id="memStatus">Find matching pairs!</p>`;
+                renderMemory();
+            } else if(name === 'Higher Lower') {
+                gameState.secret = Math.floor(Math.random() * 100) + 1;
+                gameState.attempts = 0;
+                gameState.high = 100;
+                gameState.low = 1;
+                stage.innerHTML += `<p class="game-question">📊 I'm thinking of a number 1-100...</p><p id="hlStatus" class="game-status">Start guessing!</p><div class="game-input-wrapper"><input type="number" id="hlInput" class="game-input-box" min="1" max="100" placeholder="Your guess..."><button onclick="submitHL()" class="send-btn">Guess! 🎯</button></div><p id="hlResult" class="game-result"></p>`;
+                document.getElementById('hlInput').focus();
+            } else if(name === 'Would You Rather') {
+                const options = [
+                    {a: 'Beach vacation 🏖️', b: 'Mountain adventure 🏔️'},
+                    {a: 'Coffee ☕', b: 'Tea 🍵'},
+                    {a: 'Morning person 🌅', b: 'Night owl 🌙'},
+                    {a: 'Movie night 🎬', b: 'Dinner out 🍽️'},
+                    {a: 'Travel the world 🌍', b: 'Stay home & cozy 🏠'}
+                ];
+                gameState.choice = options[Math.floor(Math.random() * options.length)];
+                stage.innerHTML += `<p class="game-question" style="font-size:18px; margin:20px 0;">Would you rather...</p><p style="font-size:20px; color:#667eea; margin:20px 0;">${gameState.choice.a}</p><p style="font-size:18px;">or</p><p style="font-size:20px; color:#764ba2; margin:20px 0;">${gameState.choice.b}</p><button onclick="startGame('Would You Rather')" class="send-btn">Next Question</button>`;
+            } else if(name === 'Love Letter') {
+                stage.innerHTML += `<p class="game-question">💌 Write me a sweet message!</p><div class="game-input-wrapper"><textarea id="letterInput" style="height:150px; border-radius:15px; padding:15px; border:1px solid #ddd;" placeholder="Your love letter..."></textarea><button onclick="sendLoveLetter()" class="send-btn">Send Love 💕</button></div><p id="letterResult" class="game-result"></p>`;
+                document.getElementById('letterInput').focus();
+            } else if(name === 'Never Have I Ever') {
+                const statements = ['Never have I ever lied to you', 'Never have I ever cried at a movie', 'Never have I ever dreamed about you', 'Never have I ever forgotten something you said', 'Never have I ever smiled thinking of you'];
+                gameState.statement = statements[Math.floor(Math.random() * statements.length)];
+                stage.innerHTML += `<p class="game-question" style="font-size:20px; margin:30px 0;">${gameState.statement}...</p><button onclick="updateGameScore(true)" class="send-btn">Guilty! 😳</button><button onclick="updateGameScore(false)" class="send-btn" style="margin-top:10px;">I haven't 😇</button><p style="font-size:18px; margin-top:20px; text-align:center;" id="nhieResult"></p><button onclick="startGame('Never Have I Ever')" class="send-btn" style="margin-top:20px;">Next</button>`;
+            } else if(name === 'Compliment Challenge') {
+                const templates = ['You have the most beautiful...', 'I love how you...', 'Your smile makes me...', 'I appreciate that you...', 'You make me feel...'];
+                gameState.template = templates[Math.floor(Math.random() * templates.length)];
+                stage.innerHTML += `<p class="game-question">Complete this compliment:</p><p style="font-size:20px; color:#667eea; margin:20px 0;">${gameState.template}</p><div class="game-input-wrapper"><input type="text" id="complimentInput" class="game-input-box" placeholder="Finish the sentence..."><button onclick="submitCompliment()" class="send-btn">Send Compliment 😍</button></div><p id="complimentResult" class="game-result"></p>`;
+                document.getElementById('complimentInput').focus();
+            } else if(name === 'Speed Dating') {
+                const questions = ['What makes you smile?', 'Your biggest dream?', 'What do you love most?', 'Biggest turn-on?', 'Your love language?', 'Weirdest habit?'];
+                gameState.question = questions[Math.floor(Math.random() * questions.length)];
+                stage.innerHTML += `<p class="game-question" style="font-size:18px; margin:30px 0;">⚡ ${gameState.question}</p><div class="game-input-wrapper"><textarea id="dateInput" style="height:100px; border-radius:15px; padding:15px; border:1px solid #ddd;" placeholder="Answer quickly..."></textarea><button onclick="submitDate()" class="send-btn">Next Question ⚡</button></div>`;
+                document.getElementById('dateInput').focus();
+            } else if(name === 'Truth or Dare') {
+                const truths = ['What\'s your biggest dream?', 'When was the last time you cried?', 'What do you love about me?', 'Your biggest fear?', 'What makes you feel loved?'];
+                const dares = ['Hug your phone!', 'Smile for 30 seconds!', 'Dance to a song!', 'Send me a sweet text!', 'Take a silly selfie!'];
+                const choice = Math.random() > 0.5;
+                const content = choice ? truths[Math.floor(Math.random() * truths.length)] : dares[Math.floor(Math.random() * dares.length)];
+                stage.innerHTML += `<p style="font-size:20px; margin:30px 0;">${choice ? '🤔 TRUTH' : '🔥 DARE'}</p><p style="font-size:18px; margin:20px 0;">${content}</p><div style="margin:20px 0;"><p style="font-size:14px; margin-bottom:10px;">Add proof (optional):</p><input type="file" id="truthFile" accept="image/*,video/*" style="padding:10px; border:1px solid #ddd; border-radius:10px; width:100%;"><button onclick="submitTruthDare()" class="send-btn" style="margin-top:10px;">Submit ✓</button></div><button onclick="startGame('Truth or Dare')" class="send-btn" style="margin-top:10px;">Skip & Next</button>`;
+            }
+        }
+        
+        function checkEmoji() {
+            const ans = document.getElementById('emojiInput').value.toLowerCase().trim();
+            if(ans === gameState.emoji.a) showPopup('Correct! 💕', 'You know emojis so well!', '💕');
+            else showPopup('Wrong! ❌', `It was ${gameState.emoji.a}!`, '😔');
+        }
+        
+        function renderMemory() {
+            let grid = document.getElementById('memoryGrid');
+            if(!grid) {
+                grid = document.createElement('div');
+                grid.id = 'memoryGrid';
+                const stage = document.getElementById('gameStage');
+                stage.appendChild(grid);
+            }
+            const isMobile = window.innerWidth < 768;
+            const cols = isMobile ? 3 : 4;
+            const size = isMobile ? '50px' : '60px';
+            const fontSize = isMobile ? '22px' : '30px';
+            grid.style.cssText = `display: grid; grid-template-columns: repeat(${cols}, ${size}); gap: 8px; margin: 20px auto;`;
+            grid.innerHTML = '';
+            for(let i = 0; i < 8; i++) {
+                const card = document.createElement('div');
+                card.style.cssText = `width: ${size}; height: ${size}; background: #667eea; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: ${fontSize};`;
+                if(gameState.matched[i]) {
+                    card.textContent = gameState.cards[i];
+                    card.style.background = '#f0f0f0';
+                } else if(gameState.flipped[i]) {
+                    card.textContent = gameState.cards[i];
+                    card.style.background = '#fecfef';
+                } else {
+                    card.textContent = '?';
+                    card.style.color = 'white';
+                    card.onclick = () => flipMemory(i);
+                }
+                grid.appendChild(card);
+            }
+        }
+        
+        function flipMemory(i) {
+            if(gameState.matched[i] || gameState.flipped[i]) return;
+            gameState.flipped[i] = true;
+            if(gameState.first === null) {
+                gameState.first = i;
+                renderMemory();
+            } else {
+                const second = i;
+                if(gameState.cards[gameState.first] === gameState.cards[second]) {
+                    gameState.matched[gameState.first] = true;
+                    gameState.matched[second] = true;
+                } 
+                gameState.flipped[gameState.first] = false;
+                gameState.flipped[second] = false;
+                gameState.first = null;
+                setTimeout(() => renderMemory(), 800);
+            }
+        }
+        
+        function submitHL() {
+            const guess = parseInt(document.getElementById('hlInput').value);
+            if(!guess) return;
+            gameState.attempts++;
+            let msg = '';
+            if(guess === gameState.secret) msg = `🎉 Got it in ${gameState.attempts} guesses!`;
+            else if(guess < gameState.secret) { msg = `📈 Higher!`; gameState.low = guess; }
+            else { msg = `📉 Lower!`; gameState.high = guess; }
+            document.getElementById('hlResult').textContent = msg;
+            if(guess === gameState.secret) document.getElementById('hlInput').style.display = 'none';
+            else document.getElementById('hlInput').value = '';
+        }
+        
+        function renderTTT() {
+            const grid = document.getElementById('tttGrid');
+            grid.innerHTML = '';
+            for(let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'ttt-cell';
+                cell.textContent = tttBoard[i];
+                cell.onclick = () => playTTT(i);
+                grid.appendChild(cell);
+            }
+            const winner = checkWinner(tttBoard);
+            const empty = tttBoard.filter(v => v === '').length;
+            if(winner) document.getElementById('tttStatus').textContent = winner === 'X' ? '🎉 You won!' : '😔 I won!';
+            else if(empty === 0) document.getElementById('tttStatus').textContent = "It's a draw!";
+            else document.getElementById('tttStatus').textContent = "Your turn!";
+        }
+        
+        function playTTT(i) {
+            if(tttBoard[i] || checkWinner(tttBoard)) return;
+            tttBoard[i] = 'X';
+            renderTTT();
+            if(checkWinner(tttBoard) || tttBoard.filter(v => v === '').length === 0) return;
+            setTimeout(() => {
+                const move = getBestMove(tttBoard);
+                tttBoard[move] = 'O';
+                renderTTT();
+            }, 600);
+        }
+        
+        function submitGuess() {
+            const guess = parseInt(document.getElementById('guessInput').value);
+            if(!guess) return;
+            gameState.attempts++;
+            let msg = '';
+            if(guess === gameState.secret) msg = `🎉 You got it in ${gameState.attempts} tries! Smart babe!`;
+            else if(guess < gameState.secret) msg = `📈 Higher! (Try ${gameState.attempts})`;
+            else msg = `📉 Lower! (Try ${gameState.attempts})`;
+            document.getElementById('guessResult').textContent = msg;
+            if(guess === gameState.secret) document.getElementById('guessInput').style.display = 'none';
+            else { document.getElementById('guessInput').value = ''; document.getElementById('guessInput').focus(); }
+        }
+        
+        function playQuiz() {
+            const q = gameState.question || 0;
+            const questions = [
+                {q: "What's my favorite color?", opt: ["Purple", "Pink", "Blue"], ans: 0},
+                {q: "Do you love me?", opt: ["Obviously yes!", "YEESSSS!", "Always always!"], ans: 0}
+            ];
+            const quiz = questions[q % questions.length];
+            document.getElementById('quizQ').textContent = quiz.q;
+            const opts = document.getElementById('quizOptions');
+            opts.innerHTML = '';
+            quiz.opt.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.textContent = o;
+                btn.className = 'send-btn';
+                btn.onclick = () => checkAnswer(i === quiz.ans);
+                opts.appendChild(btn);
+            });
+        }
+        
+        function checkAnswer(correct) {
+            if(correct) {
+                showPopup('Correct! 💕', 'You know me so well!', '💕');
+                gameState.question = (gameState.question || 0) + 1;
+                setTimeout(() => playQuiz(), 1000);
+            } else showPopup('Wrong! ❌', 'Try again babe!', '💔');
+        }
+        
+        function playRPS(you) {
+            const choices = ['Rock', 'Paper', 'Scissors'];
+            const ai = choices[Math.floor(Math.random() * 3)];
+            let result = '';
+            if(you === ai) result = `Tie! Both chose ${you}`;
+            else if((you === 'Rock' && ai === 'Scissors') || (you === 'Paper' && ai === 'Rock') || (you === 'Scissors' && ai === 'Paper'))
+                result = `💕 You won! You: ${you}, Me: ${ai}`;
+            else result = `😔 I won! You: ${you}, Me: ${ai}`;
+            document.getElementById('rpsResult').textContent = result;
+        }
+        
+        function checkWord() {
+            const ans = document.getElementById('wordInput').value.toUpperCase();
+            if(ans === gameState.word) showPopup('Correct! 💕', 'You\'re so smart!', '🧠');
+            else showPopup('Wrong! ❌', `It was ${gameState.word}`, '😔');
+        }
+        
+        function checkRiddle() {
+            const ans = document.getElementById('riddleInput').value.toLowerCase().trim();
+            if(ans === gameState.riddle.a) showPopup('Correct! 🧠', 'So clever! You got it!', '🧠');
+            else showPopup('Wrong! ❌', `Answer: ${gameState.riddle.a}`, '😔');
+        }
+
+        function closeGame() { document.getElementById('game-overlay').classList.remove('active'); }
+        
+        function submitTruthDare() {
+            const file = document.getElementById('truthFile').files[0];
+            if(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                fetch('/upload/game', {method: 'POST', body: formData})
+                    .then(r => r.json())
+                    .then(d => {
+                        showPopup('Submitted! 💕', 'Your proof saved!', '✓');
+                        startGame('Truth or Dare');
+                    })
+                    .catch(e => showPopup('Upload Error', 'Try again!', '❌'));
+            } else {
+                showPopup('Submitted! 💕', 'No proof needed, I trust you!', '✓');
+                startGame('Truth or Dare');
+            }
+        }
+        
+        function sendLoveLetter() {
+            const letter = document.getElementById('letterInput').value;
+            if(letter.trim()) {
+                fetch('/save/game-submission', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({type: 'love_letter', content: letter})
+                }).then(() => {
+                    showPopup('Love Received! 💌', 'Your letter saved forever!', '💕');
+                    startGame('Love Letter');
+                });
+            }
+        }
+        
+        function submitCompliment() {
+            const compliment = document.getElementById('complimentInput').value;
+            if(compliment.trim()) {
+                document.getElementById('complimentResult').textContent = '💕 Aww, that melted my heart!';
+                setTimeout(() => startGame('Compliment Challenge'), 2000);
+            }
+        }
+        
+        function submitDate() {
+            const answer = document.getElementById('dateInput').value;
+            if(answer.trim()) {
+                showPopup('Next! ⚡', 'I loved that answer!', '💕');
+                startGame('Speed Dating');
+            }
+        }
+        
+        function updateGameScore(guilty) {
+            const msg = guilty ? '😳 Guilty too!' : '😇 Good person!';
+            document.getElementById('nhieResult').textContent = msg;
+        }
+        
+        function playRandomGame() {
+            const games = ['Tic Tac Toe', 'Love Quiz', 'Kiss or Slap', 'Guess Number', 'Word Scramble', 'Rock Paper Scissors', 'Love Match', 'Truth or Dare', 'Riddle Me', 'Emoji Guess', 'Toss Coin', 'Dice Roll', 'Memory Match', 'Higher Lower', 'Would You Rather', 'Love Letter', 'Never Have I Ever', 'Compliment Challenge', 'Speed Dating'];
+            const randomGame = games[Math.floor(Math.random() * games.length)];
+            startGame(randomGame);
+        }
+        
+        function openRepair() { 
+            document.getElementById('repairModal').style.display='flex';
+            const input = document.getElementById('repairKey');
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+        async function submitRepair() {
+            const key = document.getElementById('repairKey').value;
+            try {
+                const resp = await fetch('/admin_login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({password: key})
+                });
+                const res = await resp.json();
+                if(res.success) {
+                    document.getElementById('repairModal').style.display = 'none';
+                    showView('repair');
+                } else {
+                    showPopup('Access Denied 🔒', 'Wrong key!', '🔒');
+                }
+            } catch(e) {
+                showPopup('Error! ⚠️', 'Connection error', '⚠️');
+            }
+        }
+        async function logout() { await fetch('/logout', {method:'POST'}); window.location.href='/'; }
+
+        // Repair Modal Functions
+        function openRepairModal(type) {
+            document.getElementById('repair' + type.charAt(0).toUpperCase() + type.slice(1) + 'Modal').style.display = 'flex';
+            if(type === 'clear') loadClearUserList();
+            if(type === 'music') loadRepairMusic();
+            if(type === 'userManager') loadUserManager();
+            if(type === 'apiManager') {
+                document.getElementById('repairApiManagerModal').style.display = 'flex';
+                // Try to load existing if possible, or just leave blank
+                document.getElementById('newApiKey').value = '';
+                document.getElementById('newDbUrl').value = '';
+            } 
+        }
+
+        async function loadClearUserList() {
+            const resp = await fetch('/admin/users');
+            const users = await resp.json();
+            const select = document.getElementById('repairClearUserSelect');
+            select.innerHTML = '<option value="">-- Select a User --</option>';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `User ${u.id} (${u.mood})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function closeRepairModal(type) {
+            document.getElementById('repair' + type.charAt(0).toUpperCase() + type.slice(1) + 'Modal').style.display = 'none';
+        }
+
+        async function submitChangePassword() {
+            const newPwd = document.getElementById('newWebPassword').value.trim();
+            if(!newPwd) return showPopup('Oops! 📝', 'Please enter a password', '📝');
+            try {
+                const resp = await fetch('/admin/password/change', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({new_password: newPwd})
+                });
+                const res = await resp.json();
+                if(res.success) {
+                    showPopup('Success! 💖', 'Password updated successfully!', '💖');
+                    closeRepairModal('password');
+                } else {
+                    showPopup('Error! ⚠️', 'Failed to update password', '⚠️');
+                }
+            } catch(e) { showPopup('Error! ⚠️', 'Network error', '⚠️'); }
+        }
+
+        async function loadUserManager() {
+            const body = document.getElementById('userTableBody');
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Loading all users... ⏳</td></tr>';
+            try {
+                const resp = await fetch('/admin/users');
+                if(!resp.ok) throw new Error('Auth required');
+                const users = await resp.json();
+                body.innerHTML = '';
+                if(users.length === 0) {
+                    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No users found yet.</td></tr>';
+                    return;
+                }
+                // Sort by ID to keep it clean
+                users.sort((a, b) => a.id - b.id);
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #eee';
+                    tr.innerHTML = `
+                        <td style="padding:10px; font-weight:bold; color:#667eea;">#${u.id}</td>
+                        <td style="padding:10px;"><input type="text" value="${u.name}" id="name-${u.id}" style="width:100%; max-width:120px; padding:8px; border-radius:8px; border:1px solid #ddd;"></td>
+                        <td style="padding:10px;"><input type="text" value="${u.mood}" id="mood-${u.id}" style="width:100%; max-width:100px; padding:8px; border-radius:8px; border:1px solid #ddd;"></td>
+                        <td style="padding:10px; display:flex; gap:8px;">
+                            <button onclick="updateUser('${u.id}')" style="background:linear-gradient(135deg, #667eea, #764ba2); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">Save</button>
+                            <button onclick="deleteUser('${u.id}')" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">Del</button>
+                        </td>
+                    `;
+                    body.appendChild(tr);
+                });
+            } catch(e) { 
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:red;">Error: ${e.message}. Please unlock Repair again.</td></tr>`; 
+            }
+        }
+
+        async function updateUser(uid) {
+            const name = document.getElementById('name-' + uid).value;
+            const mood = document.getElementById('mood-' + uid).value;
+            try {
+                const resp = await fetch('/admin/user/update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: uid, name, mood, memory: ""})
+                });
+                const res = await resp.json();
+                if(res.success) showPopup('Success! ✨', 'User updated!', '✨');
+                else showPopup('Error! ⚠️', 'Failed to update user', '⚠️');
+            } catch(e) { showPopup('Error! ⚠️', 'Network error', '⚠️'); }
+        }
+
+        async function deleteUser(uid) {
+            if(!confirm('Are you sure you want to delete this user?')) return;
+            try {
+                const resp = await fetch('/admin/user/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: uid})
+                });
+                const res = await resp.json();
+                if(res.success) {
+                    alert('User deleted!');
+                    loadUserManager();
+                } else alert('Failed to delete user');
+            } catch(e) { alert('Network error'); }
+        }
+
+        async function submitMergeUsers() {
+            const src = document.getElementById('mergeSourceId').value.trim();
+            const tgt = document.getElementById('mergeTargetId').value.trim();
+            if(!src || !tgt) return alert('IDs required');
+            try {
+                const resp = await fetch('/admin/user/merge', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({source_id: src, target_id: tgt})
+                });
+                const res = await resp.json();
+                if(res.success) {
+                    alert('Users merged! 🔗');
+                    loadUserManager();
+                } else alert('Merge failed');
+            } catch(e) { alert('Network error'); }
+        }
+
+        async function submitRepairApi() {
+            const key = document.getElementById('newApiKey').value.trim();
+            const dbUrl = document.getElementById('newDbUrl').value.trim();
+            if(!key && !dbUrl) return alert('Please enter at least one value');
+            try {
+                const resp = await fetch('/admin/api/update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({openai_api_key: key, database_url: dbUrl})
+                });
+                const res = await resp.json();
+                if(res.success) {
+                    alert('Settings updated successfully! ✨');
+                    closeRepairModal('apiManager');
+                } else {
+                    alert('Update failed: ' + (res.error || 'Unknown error'));
+                }
+            } catch(e) { alert('Network error'); }
+        }
+
+        // AI Chat Modal
+        async function sendRepairChat() {
+            const input = document.getElementById('repairChatInput');
+            const box = document.getElementById('repairChatBox');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            // Remove placeholder if it exists
+            const placeholder = box.querySelector('div');
+            if(placeholder && placeholder.style.opacity) placeholder.remove();
+
+            const userMsg = document.createElement('div');
+            userMsg.style = "align-self: flex-end; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #444; padding: 12px 18px; border-radius: 20px; border-bottom-right-radius: 4px; max-width: 85%; font-size: 14.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 8px; font-weight: 500; animation: fadeIn 0.3s ease;";
+            userMsg.textContent = msg;
+            box.appendChild(userMsg);
+            
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const resp = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await resp.json();
+                
+                const botMsg = document.createElement('div');
+                botMsg.style = "align-self: flex-start; background: white; color: #444; padding: 12px 18px; border-radius: 20px; border-bottom-left-radius: 4px; max-width: 85%; font-size: 14.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #fecfef; margin-bottom: 8px; animation: fadeIn 0.3s ease;";
+                botMsg.textContent = data.reply || "Something went wrong... 😅";
+                box.appendChild(botMsg);
+                box.scrollTop = box.scrollHeight;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Music Modal
+        async function uploadRepairMusic() {
+            const file = document.getElementById('repairMusicFile').files[0];
+            if(!file) { alert('Select a music file'); return; }
+            const formData = new FormData();
+            formData.append('file', file);
+            const resp = await fetch('/admin/music/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const d = await resp.json();
+            if(d.success) {
+                document.getElementById('repairMusicFile').value = '';
+                loadRepairMusic();
+                alert('✅ Music uploaded!');
+            } else {
+                alert('❌ Upload failed');
+            }
+        }
+
+        async function loadRepairMusic() {
+            const resp = await fetch('/admin/music/list');
+            const files = await resp.json();
+            const container = document.getElementById('repairMusicList');
+            if(!files || files.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No music files</p>';
+                return;
+            }
+            container.innerHTML = '';
+            files.forEach(file => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd;';
+                card.innerHTML = `<div style="font-size: 20px; margin-bottom: 5px;">🎵</div><div style="font-size: 11px; color: #555; margin-bottom: 8px;">${file.substring(0, 15)}</div><button class="send-btn" onclick="deleteRepairMusic('${file}')" style="background: #ff4d4d; width: 100%; padding: 5px; font-size: 11px;">Delete</button>`;
+                container.appendChild(card);
+            });
+        }
+
+        async function deleteRepairMusic(filename) {
+            if(!confirm(`Delete "${filename}"?`)) return;
+            const resp = await fetch('/admin/music/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({filename: filename})
+            });
+            const d = await resp.json();
+            if(d.success) {
+                loadRepairMusic();
+                alert('✅ Music deleted!');
+            }
+        }
+
+        // History Modal
+        async function loadRepairHistory() {
+            const resp = await fetch('/repair/history');
+            const messages = await resp.json();
+            const container = document.getElementById('repairHistoryContainer');
+            if(!messages || messages.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No chat history</p>';
+                return;
+            }
+            container.innerHTML = '';
+            messages.slice(-30).reverse().forEach(m => {
+                const userMsg = document.createElement('div');
+                userMsg.style.cssText = 'margin-bottom: 8px; padding: 8px; background: #667eea; color: white; border-radius: 8px;';
+                userMsg.innerHTML = `<strong>You:</strong> ${m.message}`;
+                
+                const botMsg = document.createElement('div');
+                botMsg.style.cssText = 'margin-bottom: 10px; padding: 8px; background: #f0f0f0; color: #333; border-radius: 8px;';
+                botMsg.innerHTML = `<strong>Jeet:</strong> ${m.response}`;
+                
+                container.appendChild(userMsg);
+                container.appendChild(botMsg);
+            });
+        }
+
+        // Clear Data Modal
+        async function submitRepairClearUser() {
+            const uid = document.getElementById('repairClearUserSelect').value;
+            if(!uid) { alert('Please select a user'); return; }
+            if(!confirm(`Clear ALL data for user ${uid}?`)) return;
+            const resp = await fetch('/repair/clear_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: parseInt(uid)})
+            });
+            const d = await resp.json();
+            alert(d.message);
+            loadClearUserList();
+        }
+
+        async function submitRepairDeleteOld() {
+            if(!confirm('Delete all messages older than 30 days?')) return;
+            const resp = await fetch('/repair/delete_old', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const d = await resp.json();
+            alert(d.message);
+        }
+    </script>
+</body>
+</html>
